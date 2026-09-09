@@ -1,0 +1,25 @@
+# macOS
+.DS_Store
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Local PowerShell dependencies
+.psmodules/
+
+# Generated assessment output
+M365-HIPAA-Assessment-Output/
+M365-Assessment/
+output/
+
+# Assessment artifacts / logs
+*_Assessment-Issues*.log
+*_Assessment-Log*.txt
+
+# IDE
+.vscode/
+.idea/

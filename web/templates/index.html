@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microsoft 365 HIPAA-Mapped Security Assessment</title>
+    <link rel="stylesheet" href="/static/styles.css?v=20260910-1">
+</head>
+
+<body>
+
+<header class="site-header">
+    <div class="container nav">
+        <div class="brand">
+            <div class="brand-mark">S</div>
+            <div class="brand-text">
+                <strong>SYSTEMS</strong>
+                <span>Automation Team / IAM Ops</span>
+            </div>
+        </div>
+
+        <div class="framework-label">
+            Microsoft 365 HIPAA-Mapped Security Assessment
+        </div>
+    </div>
+</header>
+
+<main>
+
+<section class="hero">
+    <div class="hero-glow hero-glow-one"></div>
+    <div class="hero-glow hero-glow-two"></div>
+
+    <div class="container hero-content">
+        <div class="eyebrow">
+            MICROSOFT 365 · HIPAA-MAPPED SECURITY ASSESSMENT
+        </div>
+
+        <h1>
+            Measure your Microsoft 365
+            <span>posture against HIPAA requirements.</span>
+        </h1>
+
+        <p class="hero-copy">
+            Run a full Microsoft 365 technical security assessment and map
+            findings to HIPAA Administrative Simplification requirements across
+            the Security, Privacy and Breach Notification Rules.
+        </p>
+
+        <div class="framework-pills">
+            <span>HIPAA Security Rule</span>
+            <span>HIPAA Privacy Rule</span>
+            <span>Breach Notification Rule</span>
+            <span>Full Microsoft 365 Scope</span>
+        </div>
+
+        <div class="hero-actions">
+            <button id="openAssessment" class="primary-button">
+                Assess Your Tenant
+                <span>→</span>
+            </button>
+
+            <div class="safe-note">
+                <span class="safe-dot"></span>
+                Read-only assessment · Microsoft authentication
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section class="workflow">
+    <div class="container">
+        <div class="section-heading">
+            <span>HOW IT WORKS</span>
+            <h2>From tenant authentication to HIPAA-mapped evidence.</h2>
+        </div>
+
+        <div class="workflow-grid">
+            <div class="workflow-card">
+                <div class="step-number">01</div>
+                <h3>Connect</h3>
+                <p>
+                    Provide your Microsoft 365 tenant domain and authenticate
+                    through Microsoft's official sign-in.
+                </p>
+            </div>
+
+            <div class="workflow-card">
+                <div class="step-number">02</div>
+                <h3>Assess</h3>
+                <p>
+                    Evaluate Microsoft 365 configuration across identity, email,
+                    devices, security, collaboration, licensing, Power BI and
+                    hybrid services.
+                </p>
+            </div>
+
+            <div class="workflow-card">
+                <div class="step-number">03</div>
+                <h3>Map</h3>
+                <p>
+                    Map technical findings to applicable HIPAA requirements in
+                    45 CFR Part 164 across Security, Privacy and Breach
+                    Notification safeguards.
+                </p>
+            </div>
+
+            <div class="workflow-card">
+                <div class="step-number">04</div>
+                <h3>Report</h3>
+                <p>
+                    Review the interactive HTML posture report and download
+                    supporting findings, reference, section and metadata evidence.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section class="report-experience">
+    <div class="container">
+        <div class="section-heading">
+            <span>INTERACTIVE REPORT</span>
+            <h2>See posture first. Drill into evidence second.</h2>
+        </div>
+
+        <div class="report-preview-grid">
+            <div class="report-preview-score">
+                <div class="preview-score-wheel" aria-label="Illustrative HIPAA mapped-check posture">
+                    <div class="preview-score-inner">
+                        <strong>Live</strong>
+                        <span>HIPAA posture</span>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="preview-kicker">Generated from assessment results</div>
+                    <h3>One posture view, backed by Microsoft 365 evidence.</h3>
+                    <p>
+                        The generated report includes mapped-check posture,
+                        HIPAA rule and safeguard coverage, status and risk filters,
+                        search, regulatory references and expandable remediation evidence.
+                    </p>
+                </div>
+            </div>
+
+            <div class="report-preview-features">
+                <div class="preview-feature">
+                    <span>01</span>
+                    <div>
+                        <strong>Mapped-check posture</strong>
+                        <p>
+                            Visualize the pass rate across mapped technical checks
+                            without presenting it as a HIPAA compliance percentage.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="preview-feature">
+                    <span>02</span>
+                    <div>
+                        <strong>Rule & safeguard coverage</strong>
+                        <p>
+                            Review Security, Privacy and Breach Notification
+                            sections and distinguish mapped evidence from areas
+                            not established by automated Microsoft 365 checks.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="preview-feature">
+                    <span>03</span>
+                    <div>
+                        <strong>Expand evidence</strong>
+                        <p>
+                            Open a finding to inspect HIPAA references, observed
+                            state, expected state, risk and recommended remediation.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+</main>
+
+
+<footer>
+    <div class="container footer-content">
+        <span>Systems Automation Team / IAM Ops</span>
+        <span>
+            Powered by M365-Assess · HIPAA 45 CFR Part 164 ·
+            Technical configuration mapping only
+        </span>
+    </div>
+</footer>
+
+
+<div id="assessmentModal" class="modal hidden">
+    <div class="modal-overlay" id="modalOverlay"></div>
+
+    <div class="modal-card">
+        <button id="closeModal" class="close-button" aria-label="Close">×</button>
+
+        <div id="tenantStep" class="modal-step">
+            <div class="modal-icon">01</div>
+
+            <div class="modal-label">
+                START ASSESSMENT
+            </div>
+
+            <h2>Assess your Microsoft 365 HIPAA-mapped posture.</h2>
+
+            <p>
+                Enter the primary Microsoft 365 tenant domain you want to assess.
+            </p>
+
+            <form id="tenantForm">
+                <label for="tenantDomain">
+                    Tenant domain
+                </label>
+
+                <input
+                    id="tenantDomain"
+                    name="tenantDomain"
+                    type="text"
+                    placeholder="company.onmicrosoft.com"
+                    autocomplete="off"
+                    required
+                >
+
+                <div id="tenantError" class="error-message"></div>
+
+                <button class="primary-button full-width" type="submit">
+                    Start Assessment
+                    <span>→</span>
+                </button>
+            </form>
+
+            <div class="security-note">
+                Your Microsoft password is never entered into this application.
+                Authentication is completed on Microsoft's official sign-in page.
+            </div>
+        </div>
+
+
+        <div id="startingStep" class="modal-step hidden">
+            <div class="loader"></div>
+
+            <div class="modal-label">
+                PREPARING ASSESSMENT
+            </div>
+
+            <h2>Starting the assessment engine.</h2>
+
+            <p>
+                Preparing Microsoft authentication and the full Microsoft 365
+                HIPAA-mapped assessment session.
+            </p>
+        </div>
+
+
+        <div id="authStep" class="modal-step hidden">
+            <div class="modal-icon microsoft-icon">M</div>
+
+            <div class="modal-label">
+                MICROSOFT AUTHENTICATION
+            </div>
+
+            <h2>Connect your Microsoft tenant.</h2>
+
+            <p>
+                Microsoft has generated a temporary device code.
+                Continue to Microsoft's official authentication page.
+            </p>
+
+            <div class="device-code-box">
+                <span>Device code</span>
+
+                <strong id="deviceCode">---------</strong>
+
+                <button id="copyCode" class="copy-button" type="button">
+                    Copy code
+                </button>
+            </div>
+
+            <button id="microsoftLogin" class="microsoft-button" type="button">
+                Continue with Microsoft
+                <span>↗</span>
+            </button>
+
+            <div class="waiting-line">
+                <span class="pulse"></span>
+                Waiting for Microsoft authentication...
+            </div>
+        </div>
+
+
+        <div id="runningStep" class="modal-step hidden">
+            <div class="loader"></div>
+
+            <div class="modal-label">
+                ASSESSMENT RUNNING
+            </div>
+
+            <h2>Evaluating Microsoft 365 posture.</h2>
+
+            <p id="runningTenant"></p>
+
+            <div class="progress-list">
+                <div class="progress-item" data-phase="authentication">
+                    <span></span>
+                    Microsoft authentication connected
+                </div>
+
+                <div class="progress-item" data-phase="collecting">
+                    <span></span>
+                    Collecting Microsoft 365 evidence
+                </div>
+
+                <div class="progress-item" data-phase="evaluating">
+                    <span></span>
+                    Evaluating Microsoft 365 controls
+                </div>
+
+                <div class="progress-item" data-phase="mapping">
+                    <span></span>
+                    Mapping findings to HIPAA requirements
+                </div>
+
+                <div class="progress-item" data-phase="building">
+                    <span></span>
+                    Building HIPAA assessment package
+                </div>
+            </div>
+
+            <div class="assessment-note">
+                The full assessment can take longer depending on tenant size,
+                enabled Microsoft 365 services and available permissions.
+            </div>
+        </div>
+
+
+        <div id="completeStep" class="modal-step hidden">
+            <div class="success-icon">✓</div>
+
+            <div class="modal-label success-label">
+                ASSESSMENT COMPLETE
+            </div>
+
+            <h2>Your HIPAA assessment package is ready.</h2>
+
+            <p id="completedTenant"></p>
+
+            <div class="result-actions">
+                <a
+                    id="reportLink"
+                    href="#"
+                    target="_blank"
+                    rel="noopener"
+                    class="primary-button result-button"
+                >
+                    Open HIPAA Report
+                    <span>↗</span>
+                </a>
+
+                <a
+                    id="findingsLink"
+                    href="#"
+                    class="secondary-button result-button"
+                >
+                    Findings CSV
+                </a>
+
+                <a
+                    id="referenceLink"
+                    href="#"
+                    class="secondary-button result-button"
+                >
+                    HIPAA Reference Summary
+                </a>
+
+                <a
+                    id="sectionLink"
+                    href="#"
+                    class="secondary-button result-button"
+                >
+                    HIPAA Section Summary
+                </a>
+
+                <a
+                    id="metadataLink"
+                    href="#"
+                    class="secondary-button result-button"
+                >
+                    Assessment Metadata
+                </a>
+            </div>
+
+            <div class="technical-output">
+                <div>
+                    <span>Web report</span>
+                    <code id="reportUrl"></code>
+                </div>
+
+                <div>
+                    <span>Output folder</span>
+                    <code id="outputFolder"></code>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="failedStep" class="modal-step hidden">
+            <div class="failure-icon">!</div>
+
+            <div class="modal-label failure-label">
+                ASSESSMENT FAILED
+            </div>
+
+            <h2>Something stopped the assessment.</h2>
+
+            <p id="failureMessage">
+                Review the assessment engine output and try again.
+            </p>
+
+            <button
+                id="tryAgain"
+                class="primary-button full-width"
+                type="button"
+            >
+                Try Again
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<script src="/static/app.js?v=20260910-2"></script>
+
+</body>
+</html>

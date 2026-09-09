@@ -1,0 +1,14 @@
+{
+  "toolName": "M365-HIPAA-Assessment",
+  "version": "0.1.0",
+  "m365AssessMinimumVersion": "2.12.0",
+
+  "frameworks": {
+    "hipaa": "hipaa"
+  },
+
+  "reporting": {
+    "formalComplianceClaim": false,
+    "showMappedCheckPassRate": true
+  }
+}
