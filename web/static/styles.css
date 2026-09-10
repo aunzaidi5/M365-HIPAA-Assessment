@@ -1124,3 +1124,32 @@ input:focus {
         gap: 8px;
     }
 }
+
+
+/* Additional Microsoft authentication UX */
+.auth-progress-note {
+    margin-top: 16px;
+    padding: 13px 14px;
+    border: 1px solid #cfe0f7;
+    border-radius: 9px;
+    background: #f5f9ff;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.auth-progress-note strong,
+.auth-progress-note span {
+    display: block;
+}
+
+.auth-progress-note strong {
+    color: var(--text);
+    margin-bottom: 3px;
+}
+
+/* Prevent background page scrolling while the assessment modal is open */
+body.modal-open {
+    overflow: hidden;
+}
+

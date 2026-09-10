@@ -21,6 +21,17 @@
     const copyCode = document.getElementById("copyCode");
     const microsoftLogin = document.getElementById("microsoftLogin");
 
+    const startingLabel = document.getElementById("startingLabel");
+    const startingTitle = document.getElementById("startingTitle");
+    const startingCopy = document.getElementById("startingCopy");
+
+    const authLabel = document.getElementById("authLabel");
+    const authTitle = document.getElementById("authTitle");
+    const authCopy = document.getElementById("authCopy");
+    const authProgressNote = document.getElementById("authProgressNote");
+    const microsoftLoginText = document.getElementById("microsoftLoginText");
+    const authWaitingText = document.getElementById("authWaitingText");
+
     const runningTenant = document.getElementById("runningTenant");
     const completedTenant = document.getElementById("completedTenant");
 
@@ -61,6 +72,10 @@
     let verificationUrl = null;
     let lastStatus = null;
 
+    // Frontend-only authentication UX state.
+    // The backend authentication workflow remains untouched.
+    let initialDeviceCode = null;
+
 
     /*
      * Progress stages returned by the HIPAA FastAPI backend.
@@ -96,8 +111,7 @@
     function openAssessmentModal() {
         modal.classList.remove("hidden");
 
-        document.body.style.overflow =
-            "hidden";
+        document.body.classList.add("modal-open");
 
         resetAssessment();
 
@@ -110,8 +124,7 @@
     function closeAssessmentModal() {
         modal.classList.add("hidden");
 
-        document.body.style.overflow =
-            "";
+        document.body.classList.remove("modal-open");
 
         stopPolling();
     }
@@ -123,6 +136,7 @@
         assessmentId = null;
         verificationUrl = null;
         lastStatus = null;
+        initialDeviceCode = null;
 
         tenantError.textContent = "";
 
@@ -158,6 +172,85 @@
         );
 
         showStep(tenantStep);
+    }
+
+
+    function configurePreparingAuthentication(additional) {
+        if (!startingLabel || !startingTitle || !startingCopy) {
+            return;
+        }
+
+        if (additional) {
+            startingLabel.textContent =
+                "ADDITIONAL MICROSOFT AUTHENTICATION";
+
+            startingTitle.textContent =
+                "Preparing another Microsoft sign-in.";
+
+            startingCopy.textContent =
+                "The assessment is still running. Another Microsoft 365 " +
+                "workload requires an authenticated session. Your current " +
+                "assessment progress has been preserved.";
+        } else {
+            startingLabel.textContent =
+                "PREPARING ASSESSMENT";
+
+            startingTitle.textContent =
+                "Starting the assessment engine.";
+
+            startingCopy.textContent =
+                "Preparing Microsoft authentication and the full Microsoft " +
+                "365 HIPAA-mapped assessment session.";
+        }
+    }
+
+
+    function configureAuthentication(additional) {
+        if (
+            !authLabel ||
+            !authTitle ||
+            !authCopy ||
+            !authProgressNote ||
+            !microsoftLoginText ||
+            !authWaitingText
+        ) {
+            return;
+        }
+
+        if (additional) {
+            authLabel.textContent =
+                "ADDITIONAL AUTHENTICATION REQUIRED";
+
+            authTitle.textContent =
+                "Continue the assessment with Microsoft.";
+
+            authCopy.textContent =
+                "Another Microsoft 365 workload requires its own authenticated " +
+                "session. Sign in with the same tenant administrator account " +
+                "to continue.";
+
+            authProgressNote.classList.remove("hidden");
+            microsoftLoginText.textContent =
+                "Authenticate and Continue";
+            authWaitingText.textContent =
+                "Waiting for this Microsoft sign-in to complete...";
+        } else {
+            authLabel.textContent =
+                "MICROSOFT AUTHENTICATION";
+
+            authTitle.textContent =
+                "Connect your Microsoft tenant.";
+
+            authCopy.textContent =
+                "Microsoft has generated a temporary device code. Continue " +
+                "to Microsoft's official authentication page.";
+
+            authProgressNote.classList.add("hidden");
+            microsoftLoginText.textContent =
+                "Continue with Microsoft";
+            authWaitingText.textContent =
+                "Waiting for Microsoft authentication...";
+        }
     }
 
 
@@ -392,10 +485,21 @@
 
             if (
                 status === "queued" ||
-                status === "starting" ||
-                status ===
-                    "preparing_authentication"
+                status === "starting"
             ) {
+                configurePreparingAuthentication(false);
+                showStep(startingStep);
+
+                schedulePoll();
+
+                return;
+            }
+
+            if (status === "preparing_authentication") {
+                configurePreparingAuthentication(
+                    initialDeviceCode !== null
+                );
+
                 showStep(startingStep);
 
                 schedulePoll();
@@ -416,9 +520,27 @@
                     data.verification_url ||
                     null;
 
+                const currentCode =
+                    data.device_code || "---------";
+
+                if (
+                    currentCode !== "---------" &&
+                    initialDeviceCode === null
+                ) {
+                    initialDeviceCode = currentCode;
+                }
+
+                const additionalAuthentication =
+                    currentCode !== "---------" &&
+                    initialDeviceCode !== null &&
+                    currentCode !== initialDeviceCode;
+
                 deviceCode.textContent =
-                    data.device_code ||
-                    "---------";
+                    currentCode;
+
+                configureAuthentication(
+                    additionalAuthentication
+                );
 
                 showStep(authStep);
 

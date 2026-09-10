@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Microsoft 365 HIPAA-Mapped Security Assessment</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260910-1">
+    <link rel="stylesheet" href="/static/styles.css?v=20260910-3">
 </head>
 
 <body>
@@ -250,13 +250,13 @@
         <div id="startingStep" class="modal-step hidden">
             <div class="loader"></div>
 
-            <div class="modal-label">
+            <div id="startingLabel" class="modal-label">
                 PREPARING ASSESSMENT
             </div>
 
-            <h2>Starting the assessment engine.</h2>
+            <h2 id="startingTitle">Starting the assessment engine.</h2>
 
-            <p>
+            <p id="startingCopy">
                 Preparing Microsoft authentication and the full Microsoft 365
                 HIPAA-mapped assessment session.
             </p>
@@ -266,16 +266,24 @@
         <div id="authStep" class="modal-step hidden">
             <div class="modal-icon microsoft-icon">M</div>
 
-            <div class="modal-label">
+            <div id="authLabel" class="modal-label">
                 MICROSOFT AUTHENTICATION
             </div>
 
-            <h2>Connect your Microsoft tenant.</h2>
+            <h2 id="authTitle">Connect your Microsoft tenant.</h2>
 
-            <p>
+            <p id="authCopy">
                 Microsoft has generated a temporary device code.
                 Continue to Microsoft's official authentication page.
             </p>
+
+            <div id="authProgressNote" class="auth-progress-note hidden">
+                <strong>Your assessment is still running.</strong>
+                <span>
+                    The current assessment process remains active and will
+                    resume automatically after this Microsoft sign-in.
+                </span>
+            </div>
 
             <div class="device-code-box">
                 <span>Device code</span>
@@ -288,13 +296,13 @@
             </div>
 
             <button id="microsoftLogin" class="microsoft-button" type="button">
-                Continue with Microsoft
+                <span id="microsoftLoginText">Continue with Microsoft</span>
                 <span>↗</span>
             </button>
 
             <div class="waiting-line">
                 <span class="pulse"></span>
-                Waiting for Microsoft authentication...
+                <span id="authWaitingText">Waiting for Microsoft authentication...</span>
             </div>
         </div>
 
@@ -439,7 +447,7 @@
 </div>
 
 
-<script src="/static/app.js?v=20260910-2"></script>
+<script src="/static/app.js?v=20260910-4"></script>
 
 </body>
 </html>
