@@ -2,129 +2,214 @@
 
 ## Requirements
 
-M365 NIST Assessment v0.1 requires:
+M365 HIPAA Assessment requires:
 
 - PowerShell 7+
-- Access to a Microsoft 365 / Microsoft Entra tenant
-- Internet access to Microsoft Graph and PowerShell Gallery
+- Python 3
+- Internet access to Microsoft authentication and Microsoft 365 services
+- access to a Microsoft 365 tenant with permissions required by the selected M365-Assess collectors
 - M365-Assess 2.12.0
-- ImportExcel
 
-Validated v0.1 environment:
+The local web interface uses:
 
-- macOS
-- PowerShell 7.6.5
-- M365-Assess 2.12.0
-- Microsoft Entra ID
-- Identity assessment scope
+- FastAPI
+- Uvicorn
+- Jinja2
+- python-multipart
 
-## Clone
+## Clone the Repository
 
-Clone the repository and enter the project directory:
+```bash
+git clone https://github.com/aunzaidi5/M365-HIPAA-Assessment.git
+cd M365-HIPAA-Assessment
+```
 
-    git clone https://github.com/aunzaidi5/m365-nist-assessment.git
-    cd m365-nist-assessment
-    pwsh
+## Create a Python Virtual Environment
 
-## Create isolated PowerShell module directory
+On macOS or Linux:
 
-Run inside PowerShell:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
 
-    New-Item -ItemType Directory -Path .psmodules -Force | Out-Null
+On Windows PowerShell:
 
-    $projectModules = (Resolve-Path .psmodules).Path
-    $env:PSModulePath = "$projectModules$([IO.Path]::PathSeparator)$env:PSModulePath"
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
 
-## Install M365-Assess
+## Install Web Dependencies
 
-v0.1 was validated against M365-Assess 2.12.0:
+```bash
+pip install -r requirements.txt
+```
 
-    Save-Module `
-        -Name M365-Assess `
-        -RequiredVersion 2.12.0 `
-        -Path $projectModules `
-        -Repository PSGallery `
-        -Force
+The current `requirements.txt` contains the dependencies required by the FastAPI frontend.
 
-## Install ImportExcel
+## Install M365-Assess Locally
 
-    Save-Module `
-        -Name ImportExcel `
-        -Path $projectModules `
-        -Repository PSGallery `
-        -Force
+The project is designed to use a project-local copy of M365-Assess 2.12.0 under `.psmodules/`.
 
-Verify:
+From the project root:
 
-    Get-Module -ListAvailable M365-Assess |
-        Select-Object Name,Version,ModuleBase
+```bash
+pwsh -NoProfile -Command '
+New-Item -ItemType Directory -Path "./.psmodules" -Force | Out-Null
+Save-Module -Name M365-Assess -RequiredVersion 2.12.0 -Path "./.psmodules" -Force
+'
+```
 
-Expected M365-Assess version:
+The expected module location is:
 
-    2.12.0
+```text
+.psmodules/M365-Assess/2.12.0
+```
 
-## Dry run
+`.psmodules/` is excluded from Git.
 
-Use the tenant's real primary Microsoft 365 domain:
+## Verify PowerShell and M365-Assess
 
-    Invoke-M365Assessment `
-        -TenantId 'yourtenant.onmicrosoft.com' `
-        -Section Identity `
-        -DryRun
+Check PowerShell:
 
-Do not literally use yourtenant.onmicrosoft.com. Replace it with the real tenant domain.
+```bash
+pwsh -NoProfile -Command '$PSVersionTable.PSVersion.ToString()'
+```
 
-A dry run makes no connection and collects no tenant data.
+Verify that the project-local module can be imported:
 
-## Run the Microsoft 365 Identity collection
+```bash
+pwsh -NoProfile -Command '
+$localModules = (Resolve-Path "./.psmodules").Path
+$env:PSModulePath = "$localModules$([IO.Path]::PathSeparator)$env:PSModulePath"
+Import-Module "./.psmodules/M365-Assess/2.12.0/M365-Assess.psd1" -Force
+Get-Command Invoke-M365Assessment
+'
+```
 
-    Invoke-M365Assessment `
-        -TenantId 'yourtenant.onmicrosoft.com' `
-        -Section Identity `
-        -UseDeviceCode `
-        -OutputFolder './output/vanilla'
+## Verify the Python Application
 
-Authentication is handled by Microsoft's sign-in flow. This project does not collect Microsoft passwords.
+With the virtual environment active:
 
-### Tenant domain requirement
+```bash
+python -m py_compile web/app.py
+```
 
-For fresh v0.1 assessments using M365-Assess 2.12.0, use the primary tenant domain instead of the tenant GUID.
+If Node.js is installed, the frontend JavaScript can also be syntax-checked:
 
-During validation, GUID-based execution exposed an upstream output-folder rename issue after tenant discovery. Domain-based execution avoids that path change.
+```bash
+node --check web/static/app.js
+```
 
-## Generate the NIST-only package
+No output from these commands indicates a successful syntax check.
 
-Locate the latest completed assessment:
+## Start the Web Interface
 
-    $assessment = Get-ChildItem ./output/vanilla -Directory |
-        Sort-Object LastWriteTime -Descending |
-        Select-Object -First 1
+Run Uvicorn from the project root:
 
-Generate the NIST reports:
+```bash
+uvicorn web.app:app --host 127.0.0.1 --port 8001
+```
 
-    .\Invoke-M365NistAssessment.ps1 `
-        -ExistingAssessmentFolder $assessment.FullName `
-        -Section Identity `
-        -OutputFolder './output/nist' `
-        -OpenReport
+Then open:
 
-Processing an existing assessment does not require another Microsoft login.
+```text
+http://127.0.0.1:8001
+```
 
-## Output
+For actual assessment runs, do **not** use `--reload`. Active assessment job state is currently stored in memory, so a reload or application restart can remove the browser-visible job state while the underlying files remain on disk.
 
-The generated package includes:
+## Check Engine Status
 
-- NIST-Assessment.html
-- NIST-Findings.csv
-- NIST-SP800-53-Findings.csv
-- NIST-SP800-53-Family-Summary.csv
-- NIST-CSF-2.0-Findings.csv
-- NIST-CSF-2.0-Function-Summary.csv
-- NIST-Compliance-Matrix.xlsx
-- assessment-metadata.json
+With the web application running, open:
 
-## Assessment boundary
+```text
+http://127.0.0.1:8001/engine/status
+```
 
-This tool reports Microsoft 365 technical findings mapped to NIST references.
+A ready environment should report that:
 
-It does not claim formal NIST certification, complete SP 800-53 control coverage, complete organizational CSF coverage, or NIST SP 800-207 compliance.
+- PowerShell is available
+- the HIPAA wrapper script exists
+- M365-Assess is available
+- the expected local M365-Assess module path exists
+- the HIPAA framework is configured
+
+## Tenant Domain Requirement
+
+For fresh assessments, use the tenant's primary `onmicrosoft.com` domain, for example:
+
+```text
+contoso.onmicrosoft.com
+```
+
+The current wrapper intentionally rejects a tenant GUID for fresh runs because M365-Assess 2.12.0 can rename the assessment directory after tenant discovery while some collectors retain the original path.
+
+## Microsoft 365 Permissions
+
+M365 HIPAA Assessment uses M365-Assess as its collector. Required permissions therefore depend on the workloads and checks being collected.
+
+The default assessment scope includes Tenant, Identity, Licensing, Email, Intune, Security, Collaboration, Power BI, Hybrid, and Inventory. A tenant administrator may be prompted to authenticate more than once because separate Microsoft 365 workloads or PowerShell modules can require separate authenticated sessions.
+
+Some Security & Compliance / Purview operations can open a Microsoft browser sign-in directly rather than using the device-code screen shown by the local web application.
+
+## Generated Data
+
+Assessment output is written beneath:
+
+```text
+M365-HIPAA-Assessment-Output/
+```
+
+This directory is excluded from Git because assessment data can contain security-sensitive tenant information.
+
+The following local paths are also excluded from source control:
+
+```text
+.venv/
+.psmodules/
+M365-HIPAA-Assessment-Output/
+M365-Assessment/
+output/
+```
+
+## Troubleshooting
+
+### `pwsh` not found
+
+Install PowerShell 7 and confirm that `pwsh` is available on your shell path.
+
+### M365-Assess not found
+
+Confirm that this path exists:
+
+```text
+.psmodules/M365-Assess/2.12.0/M365-Assess.psd1
+```
+
+Then rerun the import verification command above.
+
+### Web application starts but engine is not ready
+
+Check:
+
+```text
+http://127.0.0.1:8001/engine/status
+```
+
+The response identifies whether the missing dependency is PowerShell, the wrapper script, or M365-Assess.
+
+### Assessment appears to pause during authentication
+
+A broad Microsoft 365 assessment can require multiple workload sessions. Complete each Microsoft sign-in request using the intended tenant administrator account. Device-code authentication is shown in the assessment modal; browser-based Purview authentication may appear in a separate browser tab.
+
+### Browser loses a running assessment after Uvicorn restarts
+
+Current job state is in memory. Restarting the FastAPI process removes that job record. Generated assessment files may still exist on disk, but the existing assessment URL will no longer be associated with the previous in-memory job.
+
+## Security Note
+
+Do not commit assessment output, raw tenant exports, access tokens, credentials, or customer-sensitive evidence to Git.
+
+This project performs technical Microsoft 365 posture assessment and HIPAA mapping. It does not provide a legal opinion, HIPAA certification, audit attestation, or formal determination of compliance.

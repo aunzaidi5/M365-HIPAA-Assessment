@@ -1,231 +1,265 @@
 # Architecture
 
-## Design Principle
+## Purpose
 
-M365 NIST Assessment does not replace the M365-Assess collection engine.
+M365 HIPAA Assessment is a Microsoft 365 technical security posture assessment wrapper built on top of [M365-Assess](https://github.com/Galvnyz/M365-Assess).
 
-M365-Assess remains responsible for read-only Microsoft 365 evidence collection and technical security checks.
+M365-Assess remains responsible for Microsoft 365 evidence collection and technical security checks. This project adds a dedicated HIPAA mapping, normalization, reporting, and local web experience on top of those findings.
 
-This project adds a dedicated NIST filtering and reporting layer on top of those findings.
+The project does **not** determine, certify, or attest that an organization is HIPAA compliant. It produces Microsoft 365 technical evidence mapped to HIPAA Administrative Simplification requirements in 45 CFR Part 164.
 
 ## High-Level Architecture
 
-    Microsoft 365 / Entra
-            |
-            v
-       M365-Assess
-            |
-            v
-    Technical findings
-            |
-            v
-    controls/registry.json
-            |
-            +----------------------+
-            |                      |
-            v                      v
-    NIST SP 800-53          NIST CSF 2.0
-            |                      |
-            +----------+-----------+
-                       |
-                       v
-             Custom NIST reports
+```text
+Browser
+  |
+  v
+FastAPI local web application
+  |
+  v
+Invoke-M365HipaaAssessment.ps1
+  |
+  v
+M365-Assess 2.12.0
+  |
+  +--> Microsoft Graph / Entra ID
+  +--> Exchange Online
+  +--> Intune
+  +--> Defender / Security workloads
+  +--> Purview / Security & Compliance
+  +--> Collaboration / Power BI / Hybrid / Inventory collectors
+  |
+  v
+Raw M365-Assess assessment evidence
+  |
+  v
+M365-Assess control registry + HIPAA framework mapping
+  |
+  v
+Normalized HIPAA-mapped findings
+  |
+  +--> HIPAA-Assessment.html
+  +--> HIPAA-Findings.csv
+  +--> HIPAA-Reference-Summary.csv
+  +--> HIPAA-Section-Summary.csv
+  +--> assessment-metadata.json
+```
 
 ## Main Components
 
-### Invoke-M365NistAssessment.ps1
+### `Invoke-M365HipaaAssessment.ps1`
 
-Main orchestration script.
+The PowerShell orchestration layer.
 
 It can:
 
-- launch a fresh M365-Assess assessment
-- process an existing assessment folder
-- locate the M365-Assess control registry
-- generate the NIST-only reporting package
-- preserve assessment provenance
+- launch a fresh M365-Assess collection
+- reuse a previously completed M365-Assess evidence folder
+- use the project-local M365-Assess module path
+- locate the upstream M365-Assess control registry
+- normalize and map collected findings to HIPAA references
+- generate the HIPAA report package
+- preserve tenant and assessment provenance
 
-### Get-NistMappedFindings.ps1
+The default cloud assessment scope includes:
 
-Reads M365-Assess collector CSV files and matches each finding to the upstream control registry.
+- Tenant
+- Identity
+- Licensing
+- Email
+- Intune
+- Security
+- Collaboration
+- Power BI
+- Hybrid
+- Inventory
 
-It normalizes child CheckIds such as:
+`ActiveDirectory`, `SOC2`, `ValueOpportunity`, and `All` remain available as explicit M365-Assess section values but are not part of the default HIPAA run.
 
-    ENTRA-AUTHMETHOD-001.1
-    ENTRA-AUTHMETHOD-001.2
+### `Functions/Get-HipaaMappedFindings.ps1`
 
-and associates findings with their corresponding framework mappings.
+Reads M365-Assess result data and joins findings to the upstream control registry.
 
-Only findings mapped to either NIST framework are retained.
+It normalizes finding data into fields used by the HIPAA reporting layer, including:
 
-### Export-Nist80053Report.ps1
+- Check ID and base Check ID
+- Setting
+- Category
+- Status
+- Risk severity
+- Source
+- HIPAA references
+- HIPAA sections / safeguards
+- Observed and expected values
+- Evidence source and timestamp
+- Collection method
+- Confidence
+- Limitations
+- Remediation
 
-Creates the NIST SP 800-53 focused outputs.
+A single Microsoft 365 finding can map to multiple granular HIPAA references.
 
-It:
+### `Functions/Export-HipaaReferenceSummary.ps1`
 
-- extracts SP 800-53 control references
-- groups findings by control family
-- counts unique controls observed
-- summarizes finding status by family
+Builds a summary grouped by granular HIPAA references such as:
 
-### Export-NistCsfReport.ps1
+```text
+164.308(a)(3)(ii)(C)
+164.312(a)(2)(i)
+164.312(b)
+```
 
-Creates the NIST CSF 2.0 focused outputs.
+The summary is evidence-oriented. It does not treat the HIPAA regulation as a simple checklist denominator.
 
-It:
+### `Functions/Export-HipaaSectionSummary.ps1`
 
-- extracts CSF 2.0 subcategory references
-- groups findings by CSF function
-- summarizes mapped findings and statuses
+Builds an executive-level summary grouped by top-level HIPAA sections.
 
-### Export-NistComplianceMatrix.ps1
+Examples include:
 
-Creates the XLSX reporting package containing NIST-oriented assessment data.
+- §164.308 — Administrative Safeguards
+- §164.310 — Physical Safeguards
+- §164.312 — Technical Safeguards
+- §164.314 — Organizational Requirements
+- §164.316 — Policies and Documentation
+- Privacy Rule sections
+- Breach Notification Rule sections
 
-ImportExcel is used for workbook generation.
+A section with zero mapped automated checks is represented as an evidence gap rather than a pass or fail.
 
-On some non-Windows platforms, ImportExcel may display harmless warnings about automatic column sizing.
+### `Functions/Export-HipaaHtmlReport.ps1`
 
-### Export-NistHtmlReport.ps1
-
-Creates the custom HTML report.
+Creates the self-contained interactive HTML assessment report.
 
 The report includes:
 
-- tenant identity
-- assessment scope
-- NIST-mapped finding totals
-- Pass / Fail / Warning / Review counts
-- mapped-check pass rate
-- SP 800-53 family summary
-- CSF 2.0 function summary
-- detailed mapped findings
+- tenant and scope information
+- generated timestamp
+- finding totals
+- failure and risk counts
+- HIPAA references observed
+- HIPAA sections represented
+- mapped-check posture
+- Security, Privacy, and Breach Notification section views
+- searchable and filterable findings
+- expandable finding details
+- HIPAA regulatory mappings
+- observed versus expected state
 - remediation guidance
-- assessment boundary notice
+- assessment boundary disclaimer
 
-## Framework Source
+## HIPAA Framework Source
 
-The project does not invent its own NIST control mappings.
+The project does not invent its own HIPAA mappings.
 
-Mappings are sourced from the M365-Assess control registry.
+HIPAA mappings are sourced from the HIPAA framework and control registry shipped with M365-Assess 2.12.0. The project uses the framework identifier:
 
-The relevant framework IDs are:
+```text
+hipaa
+```
 
-    nist-800-53
-    nist-csf
+The upstream mapping may associate one Microsoft 365 check with more than one HIPAA citation.
 
-Other M365-Assess framework mappings are intentionally excluded from the custom NIST reporting package.
+## Reporting Semantics
 
-## NIST SP 800-53 Rev. 5
+### Technical findings
 
-Findings may map to control families including:
+The fundamental unit in the report is a Microsoft 365 technical finding. Findings preserve M365-Assess status values such as:
 
-- AC — Access Control
-- AT — Awareness and Training
-- AU — Audit and Accountability
-- CM — Configuration Management
-- IA — Identification and Authentication
-- IR — Incident Response
-- MP — Media Protection
-- PL — Planning
-- PM — Program Management
-- PS — Personnel Security
-- SA — System and Services Acquisition
-- SC — System and Communications Protection
-- SI — System and Information Integrity
+- Pass
+- Fail
+- Warning
+- Review
+- Info
 
-Only control families represented by collected findings appear in an assessment report.
+### Mapped-check pass rate
 
-## NIST CSF 2.0
+The report's posture indicator is calculated as:
 
-Mapped findings are grouped into the six CSF functions:
+```text
+Pass / (Pass + Fail + Warning)
+```
 
-- GV — Govern
-- ID — Identify
-- PR — Protect
-- DE — Detect
-- RS — Respond
-- RC — Recover
+`Review` and `Info` are excluded from that denominator.
 
-An Identity-only Microsoft 365 scan may not generate mappings for every CSF function.
+This is a **mapped-check pass rate**, not a HIPAA compliance percentage.
 
-## Assessment Boundary
+### HIPAA reference coverage
 
-A technical Microsoft 365 scan cannot establish organization-wide NIST compliance on its own.
+HIPAA reference counts represent unique regulatory references observed in the mapped technical evidence. They are not a statement that every legal or operational requirement within those sections has been satisfied.
 
-Controls may require evidence from:
+### Evidence gaps
 
-- policies
-- governance documentation
-- architecture
-- interviews
-- operating procedures
-- incident response processes
-- physical controls
-- non-Microsoft platforms
-- business processes
+A HIPAA section with no mapped automated Microsoft 365 checks means that the assessment did not establish technical evidence for that section. It does not mean the requirement passed or failed.
 
-For this reason, the tool reports mapped technical findings rather than claiming formal framework compliance.
+## Web Application
 
-## NIST SP 800-207
+The local web interface is implemented with FastAPI, Jinja2, vanilla JavaScript, HTML, and CSS.
 
-NIST SP 800-207 Zero Trust Architecture is intentionally not treated as an automated compliance checklist in v0.1.
+The browser starts an assessment through the FastAPI API and then polls the job status while the PowerShell process runs in a background thread.
 
-A Zero Trust architecture assessment requires broader evidence around:
+Current routes include:
 
-- identity
-- devices
-- applications
-- workloads
-- networks
-- policy enforcement
-- telemetry
-- trust decisions
-- architecture
+```text
+GET  /
+GET  /health
+GET  /engine/status
+POST /assessments
+GET  /assessments/{assessment_id}
+GET  /assessments/{assessment_id}/report
+GET  /assessments/{assessment_id}/download/{artifact}
+```
 
-That assessment should be performed separately from the automated Microsoft 365 technical findings.
+The web application keeps active job state in memory. For real assessment runs, start Uvicorn without `--reload`; restarting the application removes in-memory job state even though generated files remain on disk.
 
-## Current v0.1 Flow
+## Authentication Model
 
-    Tenant
-      |
-      v
-    Microsoft authentication
-      |
-      v
-    M365-Assess Identity collection
-      |
-      v
-    101 Identity security checks
-      |
-      v
-    NIST mapping lookup
-      |
-      v
-    NIST SP 800-53 + CSF 2.0 filtering
-      |
-      v
-    HTML / CSV / XLSX reporting
+The application never asks the user to enter a Microsoft password into the local web interface.
 
-## Future Web Layer
+Authentication is performed through Microsoft-provided authentication flows used by the underlying Microsoft 365 PowerShell workloads.
 
-The planned web interface will remain separate from the validated CLI engine.
+A broad assessment may require more than one authenticated workload session. Device-code prompts are surfaced in the local web interface and assessment progress is preserved while the user completes the sign-in.
 
-Planned architecture:
+Some workloads, notably Purview / Security & Compliance through `Connect-IPPSSession`, may fall back to a browser-based Microsoft sign-in because that workload does not support the same device-code path. After browser authentication completes, the assessment continues automatically.
 
-    Browser
-       |
-       v
-    Local web application
-       |
-       v
-    PowerShell assessment engine
-       |
-       v
-    M365-Assess
-       |
-       v
-    NIST reporting layer
+## Assessment Data Flow
 
-This separation means the CLI assessment workflow remains usable even if the web interface is unavailable.
+```text
+1. User submits tenant primary onmicrosoft.com domain
+2. FastAPI creates an in-memory assessment job
+3. Background worker launches PowerShell
+4. M365-Assess authenticates and collects workload evidence
+5. PowerShell output is streamed into job state
+6. Web UI reflects authentication and progress phases
+7. M365-Assess output is mapped against HIPAA references
+8. HIPAA summaries and HTML report are generated
+9. FastAPI locates the completed package
+10. Browser exposes the report and supporting downloads
+```
+
+## Output Layout
+
+A web run is created under:
+
+```text
+M365-HIPAA-Assessment-Output/web-runs/{assessment_id}/
+```
+
+The HIPAA reporting layer creates a timestamped package containing:
+
+```text
+HIPAA_YYYYMMDD_HHMMSS/
+├── HIPAA-Assessment.html
+├── HIPAA-Findings.csv
+├── HIPAA-Reference-Summary.csv
+├── HIPAA-Section-Summary.csv
+└── assessment-metadata.json
+```
+
+Raw M365-Assess evidence is retained under the assessment output folder for local evidence processing but is excluded from Git.
+
+## Security Boundary
+
+Microsoft 365 assessment output may contain sensitive security configuration information. Generated output, local PowerShell dependencies, virtual environments, and assessment logs are excluded from version control through `.gitignore`.
+
+A technical Microsoft 365 scan cannot establish organization-wide HIPAA compliance on its own. A complete HIPAA program may require additional evidence covering policies, governance, workforce practices, physical safeguards, business associate arrangements, privacy operations, breach response, documentation, and systems outside Microsoft 365.
